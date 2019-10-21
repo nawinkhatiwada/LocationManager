@@ -63,7 +63,6 @@ abstract class PermissionManager {
                 }
                 (grantResults[0] == PackageManager.PERMISSION_GRANTED) -> {
                     listener.onPermissionGranted()
-
                 }
 
                 else -> {

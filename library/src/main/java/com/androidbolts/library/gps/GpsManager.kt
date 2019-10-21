@@ -4,13 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.IntentSender
 import android.location.Location
-import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
-import com.androidbolts.library.GPSLocationManager
+import androidx.appcompat.app.AlertDialog
+import com.androidbolts.library.LocationModel
 import com.androidbolts.library.utils.LocationConstants
 import com.androidbolts.library.utils.LocationConstants.REQUEST_CHECK_SETTINGS
+import com.androidbolts.library.utils.showLoadingDialog
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -21,17 +22,16 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
-import java.text.DateFormat
-import java.util.*
 
 class GpsManager private constructor() : GpsProvider() {
-    //TODO sav location ko kaam yaha
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private lateinit var mSettingsClient: SettingsClient
     private lateinit var mLocationRequest: LocationRequest
     private var mLocationCallback: LocationCallback? = null
     private var mCurrentLocation: Location? = null
     private var mLocationSettingsRequest: LocationSettingsRequest? = null
+    private var dialog: AlertDialog? = null
+    private var mRequestingLocationUpdates: Boolean = false
 
 
     companion object {
@@ -45,31 +45,39 @@ class GpsManager private constructor() : GpsProvider() {
     }
 
     override fun onResume() {
+        if(!mRequestingLocationUpdates) {
+            startLocationUpdates()
+            mRequestingLocationUpdates = true
+        }
         Log.d("Tag", "onResume called")
     }
 
     override fun onPause() {
         stopLocationUpdates()
+        Log.d("Tag", "onPause called")
     }
 
     override fun onDestroy() {
-        startLocationUpdates()
+        stopLocationUpdates()
+        Log.d("Tag", "onDestroy called")
     }
 
-    override fun get(hasTimeOut: Boolean) {
-        getLocation(hasTimeOut)
+    override fun get() {
+        getLocation()
     }
 
-    private fun getLocation(hasTimeOut: Boolean) {
+    private fun getLocation() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext())
         mSettingsClient = LocationServices.getSettingsClient(getContext())
         createLocationRequest()
         createLocationCallback()
         buildLocationSettingsRequest()
-        startLocationUpdates()
     }
 
     private fun createLocationRequest() {
+        if(mCurrentLocation == null){
+            showDialog()
+        }
         mLocationRequest = LocationRequest()
         mLocationRequest.interval = LocationConstants.UPDATE_INTERVAL_IN_MILLISECONDS
         mLocationRequest.fastestInterval =
@@ -82,6 +90,13 @@ class GpsManager private constructor() : GpsProvider() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 super.onLocationResult(locationResult)
                 mCurrentLocation = locationResult?.lastLocation
+                mCurrentLocation?.let {currentLocation ->
+                    val locationModel = LocationModel(System.currentTimeMillis(), currentLocation.latitude, currentLocation.longitude)
+                    getPrefs()?.setLocationModel(locationModel)
+                }
+                if(isLocationAvailable()){
+                    dismissDialog()
+                }
 
                 if (getLocationListener() != null) {
                     getLocationListener()?.onLocationChanged(mCurrentLocation)
@@ -98,7 +113,6 @@ class GpsManager private constructor() : GpsProvider() {
         mLocationSettingsRequest = builder.build()
     }
 
-
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener {
@@ -108,6 +122,7 @@ class GpsManager private constructor() : GpsProvider() {
                 mLocationRequest,
                 mLocationCallback, Looper.myLooper()
             )
+
         }?.addOnFailureListener {
             when ((it as ApiException).statusCode) {
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
@@ -117,7 +132,8 @@ class GpsManager private constructor() : GpsProvider() {
                     )
                     try {
                         val rae = it as ResolvableApiException
-                        rae.startResolutionForResult(getContext() as Activity,
+                        rae.startResolutionForResult(
+                            getContext() as Activity,
                             REQUEST_CHECK_SETTINGS
                         )
                     } catch (sie: IntentSender.SendIntentException) {
@@ -129,6 +145,7 @@ class GpsManager private constructor() : GpsProvider() {
                         "Location settings are inadequate, and cannot be " + "fixed here. Fix in Settings."
                     Log.e("LocationManager", errorMessage)
                     Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show()
+                    mRequestingLocationUpdates = false
                 }
             }
         }
@@ -136,7 +153,21 @@ class GpsManager private constructor() : GpsProvider() {
 
     private fun stopLocationUpdates() {
         mFusedLocationClient?.removeLocationUpdates(mLocationCallback)
+        mRequestingLocationUpdates = false
     }
 
+    private fun showDialog() {
+        if (isLoadingSet()) {
+            dialog = showLoadingDialog(getContext(), "Fetching Location", "Please wait...", false)
+            dialog?.show()
+        }
+    }
 
+    private fun dismissDialog() {
+        dialog?.dismiss()
+    }
+
+    private fun isLocationAvailable(): Boolean {
+        return mCurrentLocation != null && mCurrentLocation!!.latitude > 0.0 && mCurrentLocation!!.longitude > 0.0
+    }
 }

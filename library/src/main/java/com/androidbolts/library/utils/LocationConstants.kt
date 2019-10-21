@@ -9,6 +9,9 @@ object LocationConstants {
     const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
         UPDATE_INTERVAL_IN_MILLISECONDS / 2
     const val REQUEST_CHECK_SETTINGS = 0x1
+    const val PREF_FILE = "LocationManager"
+    const val KEY_LOCATION_MODEL = "location_model"
+
 
 
 }

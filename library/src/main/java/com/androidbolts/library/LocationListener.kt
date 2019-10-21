@@ -6,6 +6,6 @@ interface LocationListener {
     fun onLocationChanged(location:Location?)
     fun onPermissionGranted(alreadyHadPermission: Boolean)
     fun onPermissionDenied()
-    fun onProviderEnabled(provider:String)
-    fun onProviderDisabled(provider: String)
+//    fun onProviderEnabled(provider:String)
+//    fun onProviderDisabled(provider: String)
 }

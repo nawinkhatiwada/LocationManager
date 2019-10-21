@@ -2,6 +2,9 @@ package com.androidbolts.library
 
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import com.androidbolts.library.gps.GpsManager
 import com.androidbolts.library.gps.GpsProvider
 import com.androidbolts.library.permissions.PermissionListener
@@ -12,18 +15,23 @@ import com.androidbolts.library.utils.LocationConstants
 class LocationManager private constructor(
     private val locationListener: LocationListener?,
     contextProcessor: ContextProcessor,
-    private val timeOut: Int = LocationConstants.TIME_OUT_NONE
-): PermissionListener {
+    timeOut: Int = LocationConstants.TIME_OUT_NONE,
+    showLoading: Boolean
+): PermissionListener, LifecycleObserver {
     private var permissionManager = PermissionProvider.getPermissionManager()
-    private var dialog: AlertDialog ?= null
     private var gpsProvider: GpsProvider
-
+    private var prefs: PreferenceManager?=null
     init {
         this.permissionManager.setListener(this)
         this.permissionManager.setContextProcessor(contextProcessor.context)
         this.gpsProvider = GpsManager.getGpsManager()
         this.gpsProvider.setContextProcessor(contextProcessor)
         this.gpsProvider.setLocationListener(locationListener)
+        this.gpsProvider.setShowLoading(showLoading)
+        this.gpsProvider.setTimeOut(timeOut)
+        this.prefs = PreferenceManager.getInstance()
+        this.prefs?.setContextProcessor(contextProcessor)
+        this.gpsProvider.setPrefs(this.prefs)
     }
 
      class Builder constructor(context: Context) {
@@ -31,23 +39,28 @@ class LocationManager private constructor(
         private lateinit var locationListener: LocationListener
         private var timeOut: Int = LocationConstants.TIME_OUT_NONE
         private var contextProcessor: ContextProcessor = ContextProcessor(context)
-
+        private var showLoading: Boolean = false
         fun setListener(listener: LocationListener): Builder {
             this.locationListener = listener
             return this
         }
 
+         //TODO yesko kam baki
         fun setRequestTimeOut(timeOut: Int):Builder {
             this.timeOut = timeOut
             return this
         }
+         fun showLoading(show: Boolean):Builder{
+             this.showLoading = show
+             return this
+         }
 
         fun build(): LocationManager {
-            return LocationManager(locationListener, contextProcessor, timeOut)
+            return LocationManager(locationListener, contextProcessor, timeOut, showLoading)
         }
     }
 
-    fun get() {
+    fun getLocation() {
         askForPermission()
     }
 
@@ -61,7 +74,7 @@ class LocationManager private constructor(
 
     private fun permissionGranted(alreadyHadPermission:Boolean){
         locationListener?.onPermissionGranted(alreadyHadPermission)
-        gpsProvider.get(hasTimeOut())
+        gpsProvider.get()
     }
 
     private fun onPermissionGrantedFailed(){
@@ -70,40 +83,32 @@ class LocationManager private constructor(
         }
     }
 
-    private fun hasTimeOut():Boolean{
-        return timeOut != LocationConstants.TIME_OUT_NONE
-    }
-
-    fun onResume(){
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+     fun onResume(){
         locationListener?.let {
-            gpsProvider.onResume()
+            if(permissionManager.hasPermission()) {
+                gpsProvider.onResume()
+            }
         }
     }
 
-    fun onPause(){
-        gpsProvider.onPause()
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    internal fun onPause(){
+        locationListener?.let {
+            gpsProvider.onPause()
+        }
     }
 
-    fun onDestroy(){
-        gpsProvider.onDestroy()
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    internal fun onDestroy(){
+        locationListener?.let {
+            gpsProvider.onDestroy()
+        }
     }
 
-    //TODO shift this function to other class
-//    private fun showDialog(){
-//        when(timeOut){
-//            LocationConstants.TIME_OUT_NONE -> {
-//                //NO-OP
-//            }
-//            LocationConstants.TIME_OUT_LONG or LocationConstants.TIME_OUT_SHORT -> {
-//                dialog = showLoadingDialog(contextProcessor.context,"Fetching Location", "Please wait...", false)
-//                dialog?.show()
-//            }
-//        }
-//    }
-//
-//    private fun dismissDialog(){
-//        dialog?.dismiss()
-//    }
+    fun getLastUpdatedLocation(): LocationModel? {
+        return  prefs?.getLocationModel()
+    }
 
     override fun onPermissionGranted() {
         permissionGranted(false)

@@ -6,33 +6,40 @@ import android.util.Log
 import android.widget.Toast
 import com.androidbolts.library.LocationListener
 import android.view.Gravity
+import android.widget.TextView
+import androidx.lifecycle.Lifecycle
+import com.androidbolts.library.LocationManager
 
-
-
-class MainActivity : BaseActivity(), LocationListener {
-    private var location:Location?=null
+class MainActivity : BaseActivity() {
+    private var location:Location ?= null
+    private var locationManager: LocationManager ?= null
+    private val tvLocation by lazy { findViewById<TextView>(R.id.tv_current_location) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getLocation()
     }
+    private fun getLocation(){
+        locationManager = initLocationManager()
+        locationManager?.let {
+            lifecycle.addObserver(it)
+        }
+        locationManager?.getLocation()
+        //TODO solve null
+        val a = locationManager?.getLastUpdatedLocation()
+        Log.d("LOcationModel", a.toString())
+    }
 
     override fun onLocationChanged(location: Location?) {
         this.location = location
         Log.d("Location ayo", "${this.location?.latitude}, ${this.location?.longitude}")
+        tvLocation.text = "Latitude: ${this.location?.latitude}\nLongitude: ${this.location?.longitude}"
     }
 
     override fun onPermissionGranted(alreadyHadPermission: Boolean) {
         super.onPermissionGranted(alreadyHadPermission)
         if(alreadyHadPermission){
-
-           val a =  Toast.makeText(this, "Already had permission requesting location updates", Toast.LENGTH_LONG)
-            a.setGravity(
-                Gravity.TOP or Gravity.START,
-                0,
-                100
-            )
-            a.show()
+         Log.d("PERMISSION", "Already had permission")
         }
     }
 }

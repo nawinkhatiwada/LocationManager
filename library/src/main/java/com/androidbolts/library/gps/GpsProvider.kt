@@ -11,7 +11,7 @@ abstract class GpsProvider {
     private lateinit var contextProcessor: ContextProcessor
     private var locationListener: LocationListener?=null
     private var showDialog:Boolean = false
-    private var timeOut:Int = TIME_OUT_NONE
+    private var timeOut:Long = TIME_OUT_NONE
     private var prefs: PreferenceManager ?=null
     abstract fun onResume()
     abstract fun onPause()
@@ -41,14 +41,14 @@ abstract class GpsProvider {
         return this.showDialog
     }
 
-    fun setTimeOut(timeOut: Int){
+    fun setTimeOut(timeOut: Long){
         if(timeOut < 0){
             throw Exception("Timeout can't be negative value.")
         }
         this.timeOut = timeOut
-
     }
-    fun getTimeOut():Int{
+
+    fun getTimeOut():Long{
         return this.timeOut
     }
 

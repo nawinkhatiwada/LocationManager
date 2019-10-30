@@ -15,7 +15,7 @@ import com.androidbolts.library.utils.LocationConstants
 class LocationManager private constructor(
     private val locationListener: LocationListener?,
     contextProcessor: ContextProcessor,
-    timeOut: Int = LocationConstants.TIME_OUT_NONE,
+    timeOut: Long = LocationConstants.TIME_OUT_NONE,
     showLoading: Boolean
 ): PermissionListener, LifecycleObserver {
     private var permissionManager = PermissionProvider.getPermissionManager()
@@ -37,7 +37,7 @@ class LocationManager private constructor(
      class Builder constructor(context: Context) {
 
         private lateinit var locationListener: LocationListener
-        private var timeOut: Int = LocationConstants.TIME_OUT_NONE
+        private var timeOut: Long = LocationConstants.TIME_OUT_NONE
         private var contextProcessor: ContextProcessor = ContextProcessor(context)
         private var showLoading: Boolean = false
         fun setListener(listener: LocationListener): Builder {
@@ -46,7 +46,7 @@ class LocationManager private constructor(
         }
 
          //TODO yesko kam baki
-        fun setRequestTimeOut(timeOut: Int):Builder {
+        fun setRequestTimeOut(timeOut: Long):Builder {
             this.timeOut = timeOut
             return this
         }

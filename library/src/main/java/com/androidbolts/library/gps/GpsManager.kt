@@ -2,15 +2,19 @@ package com.androidbolts.library.gps
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.content.IntentSender
 import android.location.Location
+import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.androidbolts.library.LocationModel
 import com.androidbolts.library.utils.LocationConstants
 import com.androidbolts.library.utils.LocationConstants.REQUEST_CHECK_SETTINGS
+import com.androidbolts.library.utils.LocationConstants.TIME_OUT_NONE
 import com.androidbolts.library.utils.showLoadingDialog
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
@@ -156,10 +160,26 @@ class GpsManager private constructor() : GpsProvider() {
         mRequestingLocationUpdates = false
     }
 
+    //TODO need to test timeout if it works or not
     private fun showDialog() {
         if (isLoadingSet()) {
-            dialog = showLoadingDialog(getContext(), "Fetching Location", "Please wait...", false)
+            dialog = showLoadingDialog(getContext(), "Fetching Location", "Please wait...",
+                false, onPositiveButtonClicked = {
+                    stopLocationUpdates()
+                    onResume()
+            })
+            if(getTimeOut() != TIME_OUT_NONE){
+                dialog?.setOnShowListener {
+                    val posButton = dialog?.getButton(Dialog.BUTTON_POSITIVE)
+                    posButton?.visibility = View.GONE
+                    Handler().postDelayed({
+                        posButton?.visibility = View.VISIBLE
+                    }, getTimeOut())
+
+                }
+            }
             dialog?.show()
+
         }
     }
 

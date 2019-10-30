@@ -15,8 +15,8 @@ fun showLoadingDialog(
     context:Context,
     message: String?,
     title: String? = "",
-    cancelable: Boolean = false
-): AlertDialog? {
+    cancelable: Boolean = false,
+    onPositiveButtonClicked:() -> Unit): AlertDialog? {
     val builder = AlertDialog.Builder(context)
     val view = LayoutInflater.from(context).inflate(R.layout.progress_layout, null)
     val tvTitle = view.findViewById<TextView>(R.id.title)
@@ -26,6 +26,9 @@ fun showLoadingDialog(
         tvTitle.visibility = View.VISIBLE
     }
     view.findViewById<TextView>(R.id.message).text = message
+    builder.setPositiveButton("Retry") { _, _->
+        onPositiveButtonClicked()
+    }
     builder.setView(view)
     val dialog = builder.create()
     dialog.setCancelable(cancelable)

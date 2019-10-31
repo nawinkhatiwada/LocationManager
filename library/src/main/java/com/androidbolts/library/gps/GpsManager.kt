@@ -9,9 +9,12 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.androidbolts.library.LocationModel
+import com.androidbolts.library.R
 import com.androidbolts.library.utils.LocationConstants
 import com.androidbolts.library.utils.LocationConstants.REQUEST_CHECK_SETTINGS
 import com.androidbolts.library.utils.LocationConstants.TIME_OUT_NONE
@@ -26,6 +29,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
+import kotlinx.android.synthetic.main.progress_layout.view.*
 
 class GpsManager private constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
@@ -166,7 +170,7 @@ class GpsManager private constructor() : GpsProvider() {
             dialog = showLoadingDialog(getContext(), "Fetching Location", "Please wait...",
                 false, onPositiveButtonClicked = {
                     stopLocationUpdates()
-                    onResume()
+                    getLocation()
             })
             if(getTimeOut() != TIME_OUT_NONE){
                 dialog?.setOnShowListener {
@@ -174,6 +178,7 @@ class GpsManager private constructor() : GpsProvider() {
                     posButton?.visibility = View.GONE
                     Handler().postDelayed({
                         posButton?.visibility = View.VISIBLE
+                        updateDialog()
                     }, getTimeOut())
 
                 }
@@ -182,7 +187,11 @@ class GpsManager private constructor() : GpsProvider() {
 
         }
     }
-
+    private fun updateDialog(){
+        dialog?.findViewById<TextView>(R.id.title)?.text = "Gps problem"
+        dialog?.findViewById<TextView>(R.id.message)?.text = "We couldn't fetch your current location."
+        dialog?.findViewById<ProgressBar>(R.id.progress_circular)?.visibility = View.GONE
+    }
     private fun dismissDialog() {
         dialog?.dismiss()
     }

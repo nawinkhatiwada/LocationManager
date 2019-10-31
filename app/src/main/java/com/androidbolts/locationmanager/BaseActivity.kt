@@ -6,7 +6,7 @@ import com.androidbolts.library.LocationManager
 import com.androidbolts.library.utils.LocationConstants
 
 abstract class BaseActivity: AppCompatActivity(), LocationListener {
-     private var locationManager: LocationManager?=null
+     private var locationManager: LocationManager ?= null
 
     fun initLocationManager():LocationManager?{
         locationManager = LocationManager.Builder(this)

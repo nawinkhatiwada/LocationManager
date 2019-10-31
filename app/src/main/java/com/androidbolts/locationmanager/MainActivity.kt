@@ -27,19 +27,12 @@ class MainActivity : BaseActivity() {
         locationManager?.getLocation()
         //TODO solve null
         val a = locationManager?.getLastUpdatedLocation()
-        Log.d("LOcationModel", a.toString())
+        Log.d("LocationModel", a.toString())
     }
 
     override fun onLocationChanged(location: Location?) {
         this.location = location
-        Log.d("Location ayo", "${this.location?.latitude}, ${this.location?.longitude}")
+        Log.d("Location fetched:", "${this.location?.latitude}, ${this.location?.longitude}")
         tvLocation.text = "Latitude: ${this.location?.latitude}\nLongitude: ${this.location?.longitude}"
-    }
-
-    override fun onPermissionGranted(alreadyHadPermission: Boolean) {
-        super.onPermissionGranted(alreadyHadPermission)
-        if(alreadyHadPermission){
-         Log.d("PERMISSION", "Already had permission")
-        }
     }
 }

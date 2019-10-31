@@ -12,7 +12,7 @@ abstract class BaseActivity: AppCompatActivity(), LocationListener {
         locationManager = LocationManager.Builder(this)
             .showLoading(true)
             .setListener(this)
-            .setRequestTimeOut(LocationConstants.TIME_OUT_SHORT)
+            .setRequestTimeOut(LocationConstants.TIME_OUT_LONG)
             .build()
         return locationManager
     }

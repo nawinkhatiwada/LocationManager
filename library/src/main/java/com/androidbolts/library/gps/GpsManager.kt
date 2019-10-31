@@ -56,8 +56,8 @@ class GpsManager private constructor() : GpsProvider() {
         if(!mRequestingLocationUpdates) {
             startLocationUpdates()
             mRequestingLocationUpdates = true
+            Log.d("Tag", "onResume called")
         }
-        Log.d("Tag", "onResume called")
     }
 
     override fun onPause() {
@@ -77,6 +77,9 @@ class GpsManager private constructor() : GpsProvider() {
     private fun getLocation() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext())
         mSettingsClient = LocationServices.getSettingsClient(getContext())
+        setupLocationBasic()
+    }
+    private fun setupLocationBasic(){
         createLocationRequest()
         createLocationCallback()
         buildLocationSettingsRequest()
@@ -125,7 +128,7 @@ class GpsManager private constructor() : GpsProvider() {
     private fun startLocationUpdates() {
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener {
             //remove if the task is already running
-            stopLocationUpdates()
+//            stopLocationUpdates()
             mFusedLocationClient?.requestLocationUpdates(
                 mLocationRequest,
                 mLocationCallback, Looper.myLooper()
@@ -169,15 +172,21 @@ class GpsManager private constructor() : GpsProvider() {
         if (isLoadingSet()) {
             dialog = showLoadingDialog(getContext(), "Fetching Location", "Please wait...",
                 false, onPositiveButtonClicked = {
+                    setupLocationBasic()
+            }, onNegativeButtonClicked = {
                     stopLocationUpdates()
-                    getLocation()
-            })
-            if(getTimeOut() != TIME_OUT_NONE){
+                    dismissDialog()
+                })
+
                 dialog?.setOnShowListener {
                     val posButton = dialog?.getButton(Dialog.BUTTON_POSITIVE)
+                    val negButton = dialog?.getButton(Dialog.BUTTON_NEGATIVE)
                     posButton?.visibility = View.GONE
+                    negButton?.visibility = View.GONE
+                    if(getTimeOut() != TIME_OUT_NONE){
                     Handler().postDelayed({
                         posButton?.visibility = View.VISIBLE
+                        negButton?.visibility = View.VISIBLE
                         updateDialog()
                     }, getTimeOut())
 

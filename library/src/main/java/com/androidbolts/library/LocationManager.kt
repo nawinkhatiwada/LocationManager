@@ -45,8 +45,7 @@ class LocationManager private constructor(
             return this
         }
 
-         //TODO yesko kam baki
-        fun setRequestTimeOut(timeOut: Long):Builder {
+         fun setRequestTimeOut(timeOut: Long):Builder {
             this.timeOut = timeOut
             return this
         }

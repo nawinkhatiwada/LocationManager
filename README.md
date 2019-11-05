@@ -14,7 +14,7 @@ allprojects {
   
   ```
   dependencies {
-	        implementation 'com.github.nawinkhatiwada:LocationManager:1.0.0-beta2'
+	        implementation 'com.github.nawinkhatiwada:LocationManager:xyz'
 	}
   ```
   

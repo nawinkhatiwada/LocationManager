@@ -23,7 +23,9 @@ abstract class BaseActivity: AppCompatActivity(), LocationListener {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        locationManager?.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if(requestCode == LocationConstants.LOCATION_PERMISSIONS_REQUEST_CODE) {
+            locationManager?.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
     }
 
     override fun onPermissionGranted(alreadyHadPermission: Boolean) {

@@ -7,15 +7,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.androidbolts.library.BuildConfig
-import com.androidbolts.library.gps.GpsManager
-import com.androidbolts.library.gps.GpsProvider
 import com.androidbolts.library.utils.ContextProcessor
-import com.androidbolts.library.utils.LocationConstants.REQUEST_PERMISSIONS_REQUEST_CODE
-import com.androidbolts.library.utils.orElse
+import com.androidbolts.library.utils.LocationConstants.LOCATION_PERMISSIONS_REQUEST_CODE
 
 abstract class PermissionManager {
     private lateinit var listener: PermissionListener
@@ -45,7 +41,7 @@ abstract class PermissionManager {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ),
-                REQUEST_PERMISSIONS_REQUEST_CODE
+                LOCATION_PERMISSIONS_REQUEST_CODE
             )
         }
     }
@@ -56,7 +52,7 @@ abstract class PermissionManager {
         grantResults: IntArray
     ) {
 
-        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
+        if (requestCode == LOCATION_PERMISSIONS_REQUEST_CODE) {
             when {
                 grantResults.isEmpty() -> {
                     listener.onPermissionDenied()

@@ -1,4 +1,8 @@
 # LocationManager
+[![GitHub release](https://img.shields.io/github/v/release/nawinkhatiwada/LocationManager)](https://github.com/nawinkhatiwada/LocationManager/releases/latest)
+
+
+
 ```
 allprojects {
 		repositories {

@@ -29,7 +29,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
-import kotlinx.android.synthetic.main.progress_layout.view.*
 
 class GpsManager private constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
@@ -40,7 +39,6 @@ class GpsManager private constructor() : GpsProvider() {
     private var mLocationSettingsRequest: LocationSettingsRequest? = null
     private var dialog: AlertDialog? = null
     private var mRequestingLocationUpdates: Boolean = false
-
 
     companion object {
         private var gpsManager: GpsManager? = null
@@ -53,7 +51,7 @@ class GpsManager private constructor() : GpsProvider() {
     }
 
     override fun onResume() {
-        if(!mRequestingLocationUpdates) {
+        if (!mRequestingLocationUpdates) {
             startLocationUpdates()
             mRequestingLocationUpdates = true
             Log.d("Tag", "onResume called")
@@ -75,18 +73,32 @@ class GpsManager private constructor() : GpsProvider() {
     }
 
     private fun getLocation() {
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext())
-        mSettingsClient = LocationServices.getSettingsClient(getContext())
+
+        when {
+            getFragment() != null -> {
+                mFusedLocationClient =
+                    LocationServices.getFusedLocationProviderClient(getFragment()?.activity!!)
+                mSettingsClient =
+                    LocationServices.getSettingsClient(getFragment()!!.requireActivity())
+            }
+            getActivity() != null -> {
+                mFusedLocationClient =
+                    LocationServices.getFusedLocationProviderClient(getActivity()!!)
+                mSettingsClient = LocationServices.getSettingsClient(getActivity()!!)
+            }
+            else -> Log.d("LocationManager", "Host is invalid.")
+        }
         setupLocationBasic()
     }
-    private fun setupLocationBasic(){
+
+    private fun setupLocationBasic() {
         createLocationRequest()
         createLocationCallback()
         buildLocationSettingsRequest()
     }
 
     private fun createLocationRequest() {
-        if(mCurrentLocation == null){
+        if (mCurrentLocation == null) {
             showDialog()
         }
         mLocationRequest = LocationRequest()
@@ -101,11 +113,15 @@ class GpsManager private constructor() : GpsProvider() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 super.onLocationResult(locationResult)
                 mCurrentLocation = locationResult?.lastLocation
-                mCurrentLocation?.let {currentLocation ->
-                    val locationModel = LocationModel(System.currentTimeMillis(), currentLocation.latitude, currentLocation.longitude)
+                mCurrentLocation?.let { currentLocation ->
+                    val locationModel = LocationModel(
+                        System.currentTimeMillis(),
+                        currentLocation.latitude,
+                        currentLocation.longitude
+                    )
                     getPrefs()?.setLocationModel(locationModel)
                 }
-                if(isLocationAvailable()){
+                if (isLocationAvailable()) {
                     dismissDialog()
                 }
 
@@ -143,10 +159,18 @@ class GpsManager private constructor() : GpsProvider() {
                     )
                     try {
                         val rae = it as ResolvableApiException
-                        rae.startResolutionForResult(
-                            getContext() as Activity,
-                            REQUEST_CHECK_SETTINGS
-                        )
+                        when {
+                            getFragment() != null -> rae.startResolutionForResult(
+                                getFragment()?.requireActivity(),
+                                REQUEST_CHECK_SETTINGS
+                            )
+                            getActivity() != null -> rae.startResolutionForResult(
+                                getActivity(),
+                                REQUEST_CHECK_SETTINGS
+                            )
+                            else -> Log.d("Invalid host","Host is invalid.")
+                        }
+
                     } catch (sie: IntentSender.SendIntentException) {
                         Log.i("LocationManager", "PendingIntent unable to execute request.")
                     }
@@ -155,7 +179,7 @@ class GpsManager private constructor() : GpsProvider() {
                     val errorMessage =
                         "Location settings are inadequate, and cannot be " + "fixed here. Fix in Settings."
                     Log.e("LocationManager", errorMessage)
-                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show()
+                    Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show()
                     mRequestingLocationUpdates = false
                 }
             }
@@ -170,37 +194,40 @@ class GpsManager private constructor() : GpsProvider() {
     //TODO need to test timeout if it works or not
     private fun showDialog() {
         if (isLoadingSet()) {
-            dialog = showLoadingDialog(getContext(), "Fetching Location", "Please wait...",
-                false, onPositiveButtonClicked = {
-                    setupLocationBasic()
-            }, onNegativeButtonClicked = {
-                    stopLocationUpdates()
-                    dismissDialog()
-                })
+            getActivity()?.let { context ->
+                dialog = showLoadingDialog(context, "Fetching Location", "Please wait...",
+                    false, onPositiveButtonClicked = {
+                        setupLocationBasic()
+                    }, onNegativeButtonClicked = {
+                        stopLocationUpdates()
+                        dismissDialog()
+                    })
 
                 dialog?.setOnShowListener {
                     val posButton = dialog?.getButton(Dialog.BUTTON_POSITIVE)
                     val negButton = dialog?.getButton(Dialog.BUTTON_NEGATIVE)
                     posButton?.visibility = View.GONE
                     negButton?.visibility = View.GONE
-                    if(getTimeOut() != TIME_OUT_NONE){
-                    Handler().postDelayed({
-                        posButton?.visibility = View.VISIBLE
-                        negButton?.visibility = View.VISIBLE
-                        updateDialog()
-                    }, getTimeOut())
-
+                    if (getTimeOut() != TIME_OUT_NONE) {
+                        Handler().postDelayed({
+                            posButton?.visibility = View.VISIBLE
+                            negButton?.visibility = View.VISIBLE
+                            updateDialog()
+                        }, getTimeOut())
+                    }
                 }
+                dialog?.show()
             }
-            dialog?.show()
-
         }
     }
-    private fun updateDialog(){
+
+    private fun updateDialog() {
         dialog?.findViewById<TextView>(R.id.title)?.text = "Gps problem"
-        dialog?.findViewById<TextView>(R.id.message)?.text = "We couldn't fetch your current location."
+        dialog?.findViewById<TextView>(R.id.message)?.text =
+            "We couldn't fetch your current location."
         dialog?.findViewById<ProgressBar>(R.id.progress_circular)?.visibility = View.GONE
     }
+
     private fun dismissDialog() {
         dialog?.dismiss()
     }

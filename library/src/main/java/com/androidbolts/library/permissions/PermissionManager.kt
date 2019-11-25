@@ -7,42 +7,74 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
+import androidx.annotation.Nullable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.androidbolts.library.BuildConfig
 import com.androidbolts.library.utils.ContextProcessor
 import com.androidbolts.library.utils.LocationConstants.LOCATION_PERMISSIONS_REQUEST_CODE
+import java.lang.ref.WeakReference
 
 abstract class PermissionManager {
-    private lateinit var listener: PermissionListener
-    private lateinit var contextProcessor: ContextProcessor
+    private lateinit var weakPermissionListener: WeakReference<PermissionListener>
+    private lateinit var weakContextProcessor: WeakReference<ContextProcessor>
 
     fun setListener(listener: PermissionListener) {
-        this.listener = listener
+        this.weakPermissionListener = WeakReference(listener)
     }
-    fun setContextProcessor(context:Context){
-        this.contextProcessor = ContextProcessor(context)
+
+    fun setContextProcessor(contextProcessor: ContextProcessor) {
+        this.weakContextProcessor = WeakReference(contextProcessor)
+    }
+
+    @Nullable
+    protected fun getContext(): Context? {
+        return if (weakContextProcessor.get() == null) null
+        else weakContextProcessor.get()!!.context
+    }
+
+    @Nullable
+    protected fun getActivity(): Activity? {
+        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()!!.activity
+    }
+
+    @Nullable
+    protected fun getFragment(): Fragment? {
+        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()!!.fragment
     }
 
     fun hasPermission(): Boolean {
-        contextProcessor.context?.let { context ->
+        getContext()?.let { context ->
             return ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
         }
         return false
     }
 
     fun requestPermissions() {
-        contextProcessor.context?.let { context ->
+
+        if (getFragment() != null) {
+            getFragment()!!.requestPermissions(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ), LOCATION_PERMISSIONS_REQUEST_CODE
+            )
+        } else if (getActivity() != null) {
             ActivityCompat.requestPermissions(
-                context as Activity ,
+                getActivity()!!,
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ),
                 LOCATION_PERMISSIONS_REQUEST_CODE
             )
+        } else {
+            Log.d("Permission Denied", "PERMISSION DENIED")
         }
     }
 
@@ -55,10 +87,10 @@ abstract class PermissionManager {
         if (requestCode == LOCATION_PERMISSIONS_REQUEST_CODE) {
             when {
                 grantResults.isEmpty() -> {
-                    listener.onPermissionDenied()
+                    weakPermissionListener.get()?.onPermissionDenied()
                 }
                 (grantResults[0] == PackageManager.PERMISSION_GRANTED) -> {
-                    listener.onPermissionGranted()
+                    weakPermissionListener.get()?.onPermissionGranted()
                 }
 
                 else -> {
@@ -70,10 +102,16 @@ abstract class PermissionManager {
                     )
                     intent.data = uri
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    contextProcessor.context?.startActivity(intent)
+                    when {
+                        getFragment() != null -> getFragment()?.startActivity(intent)
+                        getActivity() != null -> getActivity()?.startActivity(intent)
+                        else -> Log.d(
+                            "Error starting activity",
+                            "You can either start location activity from fragment or activity."
+                        )
+                    }
                 }
             }
         }
     }
-
 }

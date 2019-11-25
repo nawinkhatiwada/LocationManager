@@ -1,7 +1,9 @@
 package com.androidbolts.library
 
+import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -23,7 +25,7 @@ class LocationManager private constructor(
     private var prefs: PreferenceManager?=null
     init {
         this.permissionManager.setListener(this)
-        this.permissionManager.setContextProcessor(contextProcessor.context)
+        this.permissionManager.setContextProcessor(contextProcessor)
         this.gpsProvider = GpsManager.getGpsManager()
         this.gpsProvider.setContextProcessor(contextProcessor)
         this.gpsProvider.setLocationListener(locationListener)
@@ -44,6 +46,16 @@ class LocationManager private constructor(
             this.locationListener = listener
             return this
         }
+
+         fun setActivity(activity: Activity) : Builder{
+             this.contextProcessor.activity = activity
+             return this
+         }
+
+         fun setFragment(fragment: Fragment) : Builder {
+             this.contextProcessor.fragment = fragment
+             return this
+         }
 
          fun setRequestTimeOut(timeOut: Long):Builder {
             this.timeOut = timeOut

@@ -191,7 +191,6 @@ class GpsManager private constructor() : GpsProvider() {
         mRequestingLocationUpdates = false
     }
 
-    //TODO need to test timeout if it works or not
     private fun showDialog() {
         if (isLoadingSet()) {
             getActivity()?.let { context ->

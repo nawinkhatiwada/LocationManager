@@ -1,4 +1,4 @@
-package com.androidbolts.locationmanager
+package com.androidbolts.locationmanager.fragment
 
 import android.location.Location
 import android.os.Bundle
@@ -8,15 +8,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.androidbolts.library.LocationManager
+import com.androidbolts.locationmanager.R
+import com.androidbolts.locationmanager.base.BaseFragment
 
-class MainFragment private constructor() : BaseFragment() {
+class LocationFragment private constructor() : BaseFragment() {
 
     private var location: Location? = null
     private var locationManager: LocationManager? = null
     private val tvLocation by lazy { activity?.findViewById<TextView>(R.id.tv_current_location) }
 
     companion object {
-        fun getInstance() = MainFragment()
+        fun getInstance() = LocationFragment()
     }
 
     override fun onCreateView(
@@ -24,7 +26,7 @@ class MainFragment private constructor() : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_main, container, false)
+        return inflater.inflate(R.layout.fragment_location, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

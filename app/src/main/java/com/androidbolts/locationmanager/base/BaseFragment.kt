@@ -1,4 +1,4 @@
-package com.androidbolts.locationmanager
+package com.androidbolts.locationmanager.base
 
 import android.location.Location
 import androidx.fragment.app.Fragment

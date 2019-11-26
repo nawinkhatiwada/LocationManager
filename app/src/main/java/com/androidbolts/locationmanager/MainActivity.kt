@@ -1,35 +1,23 @@
 package com.androidbolts.locationmanager
 
-import android.location.Location
 import android.os.Bundle
-import android.util.Log
-import android.widget.TextView
-import com.androidbolts.library.LocationManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.androidbolts.locationmanager.activity.LocationActivity
+import com.androidbolts.locationmanager.databinding.ActivityMainBinding
+import com.androidbolts.locationmanager.fragment.FragmentContainerActivity
 
-class MainActivity : BaseActivity() {
-    private var location:Location ?= null
-    private var locationManager: LocationManager ?= null
-    private val tvLocation by lazy { findViewById<TextView>(R.id.tv_current_location) }
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-//        getLocation()
-        supportFragmentManager.beginTransaction().replace(R.id.container, MainFragment.getInstance()).commit()
-    }
-//    private fun getLocation(){
-//        locationManager = initLocationManager()
-//        locationManager?.let {
-//            lifecycle.addObserver(it)
-//        }
-//        locationManager?.getLocation()
-//        //TODO solve null
-//        val a = locationManager?.getLastUpdatedLocation()
-//        Log.d("LocationModel", a.toString())
-//    }
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding.tvActivity.setOnClickListener {
+            startActivity(LocationActivity.getIntent(this))
+        }
 
-//    override fun onLocationChanged(location: Location?) {
-//        this.location = location
-//        Log.d("Location fetched:", "${this.location?.latitude}, ${this.location?.longitude}")
-//        tvLocation.text = "Latitude: ${this.location?.latitude}\nLongitude: ${this.location?.longitude}"
-//    }
+        binding.tvFragment.setOnClickListener {
+            startActivity(FragmentContainerActivity.getIntent(this))
+        }
+    }
 }

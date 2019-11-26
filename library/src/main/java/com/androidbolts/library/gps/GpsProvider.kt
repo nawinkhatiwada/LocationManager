@@ -34,6 +34,7 @@ abstract class GpsProvider {
         this.showDialog = show
     }
 
+    @Nullable
     protected fun getContext():Context? {
         return this.weakContextProcessor.get()?.context
     }
@@ -67,10 +68,10 @@ abstract class GpsProvider {
         return this.timeOut
     }
 
-    fun setPrefs(prefs: PreferenceManager?){
+    internal fun setPrefs(prefs: PreferenceManager?){
         this.prefs = prefs
     }
-    fun getPrefs():PreferenceManager?{
+    internal fun getPrefs(): PreferenceManager?{
         return this.prefs
     }
 }

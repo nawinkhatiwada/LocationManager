@@ -4,6 +4,7 @@ import android.location.Location
 import androidx.fragment.app.Fragment
 import com.androidbolts.library.LocationListener
 import com.androidbolts.library.LocationManager
+import com.androidbolts.library.LocationModel
 import com.androidbolts.library.utils.LocationConstants
 
 abstract class BaseFragment : Fragment(), LocationListener {

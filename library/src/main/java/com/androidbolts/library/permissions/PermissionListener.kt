@@ -1,6 +1,6 @@
 package com.androidbolts.library.permissions
 
-interface PermissionListener {
+internal interface PermissionListener {
     fun onPermissionGranted()
     fun onPermissionDenied()
 }

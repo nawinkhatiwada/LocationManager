@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.androidbolts.library.LocationManager
+import com.androidbolts.library.gps.GpsProvider
 import com.androidbolts.locationmanager.R
 import com.androidbolts.locationmanager.base.BaseFragment
 

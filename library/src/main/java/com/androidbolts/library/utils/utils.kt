@@ -7,11 +7,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.androidbolts.library.R
 
-inline fun <R> R?.orElse(block: () -> R): R {
+internal inline fun <R> R?.orElse(block: () -> R): R {
     return this ?: block()
 }
 
-fun showLoadingDialog(
+internal fun showLoadingDialog(
     context:Context,
     message: String?,
     title: String? = "",

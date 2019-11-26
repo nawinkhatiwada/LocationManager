@@ -1,6 +1,6 @@
 package com.androidbolts.library.permissions
 
-class PermissionProvider private constructor(): PermissionManager() {
+internal class PermissionProvider private constructor(): PermissionManager() {
 
     companion object {
         private var  permissionProvider:PermissionProvider?=null

@@ -1,6 +1,6 @@
 package com.androidbolts.library
 
-data class LocationModel(
+class LocationModel(
     var timeInMills: Long,
     var latitude: Double,
     var longitude: Double

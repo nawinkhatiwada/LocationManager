@@ -7,7 +7,7 @@ import com.androidbolts.library.utils.LocationConstants.KEY_LOCATION_MODEL
 import com.androidbolts.library.utils.LocationConstants.PREF_FILE
 import com.google.gson.Gson
 
-class PreferenceManager private constructor(){
+internal class PreferenceManager private constructor(){
     private lateinit var contextProcessor: ContextProcessor
     private var gson: Gson?=null
 
@@ -29,11 +29,11 @@ class PreferenceManager private constructor(){
         this.contextProcessor = contextProcessor
     }
 
-    fun setLocationModel(locationModel: LocationModel) {
+    internal fun setLocationModel(locationModel: LocationModel) {
         val json = getGson().toJson(locationModel)
         preferenceManager.edit().putString(KEY_LOCATION_MODEL,json).apply()
     }
-    fun getLocationModel():LocationModel?{
+    internal fun getLocationModel():LocationModel?{
         val json = preferenceManager.getString(KEY_LOCATION_MODEL,"")
         return getGson().fromJson(json, LocationModel::class.java)
     }

@@ -1,7 +1,6 @@
 package com.androidbolts.library.gps
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.Dialog
 import android.content.IntentSender
 import android.location.Location
@@ -30,7 +29,7 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
 
-class GpsManager private constructor() : GpsProvider() {
+internal class GpsManager private constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private lateinit var mSettingsClient: SettingsClient
     private lateinit var mLocationRequest: LocationRequest
@@ -98,7 +97,7 @@ class GpsManager private constructor() : GpsProvider() {
     }
 
     private fun createLocationRequest() {
-        if (mCurrentLocation == null) {
+        if (mCurrentLocation == null || getFragment() != null || getActivity() != null) {
             showDialog()
         }
         mLocationRequest = LocationRequest()
@@ -168,9 +167,8 @@ class GpsManager private constructor() : GpsProvider() {
                                 getActivity(),
                                 REQUEST_CHECK_SETTINGS
                             )
-                            else -> Log.d("Invalid host","Host is invalid.")
+                            else -> Log.d("Invalid host", "Host is invalid.")
                         }
-
                     } catch (sie: IntentSender.SendIntentException) {
                         Log.i("LocationManager", "PendingIntent unable to execute request.")
                     }

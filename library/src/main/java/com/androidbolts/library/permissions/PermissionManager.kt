@@ -21,7 +21,7 @@ abstract class PermissionManager {
     private lateinit var weakPermissionListener: WeakReference<PermissionListener>
     private lateinit var weakContextProcessor: WeakReference<ContextProcessor>
 
-    fun setListener(listener: PermissionListener) {
+    internal fun setListener(listener: PermissionListener) {
         this.weakPermissionListener = WeakReference(listener)
     }
 

@@ -31,8 +31,8 @@ import com.google.android.gms.location.SettingsClient
 
 internal class GpsManager private constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
-    private lateinit var mSettingsClient: SettingsClient
-    private lateinit var mLocationRequest: LocationRequest
+    private var mSettingsClient: SettingsClient? = null
+    private var mLocationRequest: LocationRequest? = null
     private var mLocationCallback: LocationCallback? = null
     private var mCurrentLocation: Location? = null
     private var mLocationSettingsRequest: LocationSettingsRequest? = null
@@ -101,10 +101,10 @@ internal class GpsManager private constructor() : GpsProvider() {
             showDialog()
         }
         mLocationRequest = LocationRequest()
-        mLocationRequest.interval = LocationConstants.UPDATE_INTERVAL_IN_MILLISECONDS
-        mLocationRequest.fastestInterval =
+        mLocationRequest?.interval = LocationConstants.UPDATE_INTERVAL_IN_MILLISECONDS
+        mLocationRequest?.fastestInterval =
             LocationConstants.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
-        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest?.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
     private fun createLocationCallback() {
@@ -135,13 +135,15 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     private fun buildLocationSettingsRequest() {
         val builder = LocationSettingsRequest.Builder()
-        builder.addLocationRequest(mLocationRequest)
+        mLocationRequest?.let { locReq ->
+            builder.addLocationRequest(locReq)
+        }
         mLocationSettingsRequest = builder.build()
     }
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
-        mSettingsClient.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener {
+        mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener {
             //remove if the task is already running
 //            stopLocationUpdates()
             mFusedLocationClient?.requestLocationUpdates(

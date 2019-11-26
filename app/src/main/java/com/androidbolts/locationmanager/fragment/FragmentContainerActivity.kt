@@ -19,6 +19,7 @@ class FragmentContainerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.title = "Location Fragment"
         binding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_fragment_container
@@ -27,6 +28,6 @@ class FragmentContainerActivity : AppCompatActivity() {
             .replace(
                 R.id.fragment_container,
                 LocationFragment.getInstance()
-            ).commit()
+            ).commitNow()
     }
 }

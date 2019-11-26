@@ -1,14 +1,18 @@
 package com.androidbolts.library.gps
 
+import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.Nullable
+import androidx.fragment.app.Fragment
 import com.androidbolts.library.LocationListener
 import com.androidbolts.library.PreferenceManager
 import com.androidbolts.library.utils.ContextProcessor
 import com.androidbolts.library.utils.LocationConstants.TIME_OUT_NONE
+import java.lang.ref.WeakReference
 
 abstract class GpsProvider {
-    private lateinit var contextProcessor: ContextProcessor
+    private lateinit var weakContextProcessor: WeakReference<ContextProcessor>
     private var locationListener: LocationListener?=null
     private var showDialog:Boolean = false
     private var timeOut:Long = TIME_OUT_NONE
@@ -19,8 +23,9 @@ abstract class GpsProvider {
     abstract fun get()
 
     fun setContextProcessor(contextProcessor: ContextProcessor) {
-        this.contextProcessor = contextProcessor
+        this.weakContextProcessor = WeakReference(contextProcessor)
     }
+
     fun setLocationListener(locationListener: LocationListener?){
         this.locationListener = locationListener
     }
@@ -29,8 +34,18 @@ abstract class GpsProvider {
         this.showDialog = show
     }
 
-    fun getContext():Context{
-        return this.contextProcessor.context
+    protected fun getContext():Context? {
+        return this.weakContextProcessor.get()?.context
+    }
+
+    @Nullable
+    protected fun getActivity(): Activity? {
+        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()!!.activity
+    }
+
+    @Nullable
+    protected fun getFragment(): Fragment? {
+        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()!!.fragment
     }
 
     fun getLocationListener():LocationListener?{

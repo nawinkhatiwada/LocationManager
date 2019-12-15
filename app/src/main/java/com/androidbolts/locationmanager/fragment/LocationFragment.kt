@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import com.androidbolts.library.LocationManager
 import com.androidbolts.library.gps.GpsProvider
@@ -27,18 +28,25 @@ class LocationFragment private constructor() : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_location, container, false)
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        getLocation()
-    }
-
-    private fun getLocation() {
+        val view = inflater.inflate(R.layout.fragment_location, container, false)
+        val btnGetLocation = view.findViewById<Button>(R.id.btn_get_loc)
         locationManager = initLocationManager()
         lifecycle.addObserver(locationManager!!)
-        locationManager?.getLocation()
+
+        btnGetLocation.setOnClickListener {
+            getLocation()
+        }
+        return view
+    }
+
+
+    private fun getLocation() {
+        locationManager?.let {
+            if (!it.isLoadingSet()) {
+                locationManager?.setShowLoading(true)
+            }
+            locationManager?.getLocation()
+        }
     }
 
     override fun onLocationChanged(location: Location?) {

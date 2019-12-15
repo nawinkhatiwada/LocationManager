@@ -2,7 +2,6 @@ package com.androidbolts.library
 
 import android.app.Activity
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -12,6 +11,7 @@ import com.androidbolts.library.gps.GpsProvider
 import com.androidbolts.library.permissions.PermissionListener
 import com.androidbolts.library.permissions.PermissionProvider
 import com.androidbolts.library.utils.ContextProcessor
+import com.androidbolts.library.utils.ExperimentalSharedPrefs
 import com.androidbolts.library.utils.LocationConstants
 
 class LocationManager private constructor(
@@ -19,10 +19,11 @@ class LocationManager private constructor(
     contextProcessor: ContextProcessor,
     timeOut: Long = LocationConstants.TIME_OUT_NONE,
     showLoading: Boolean
-): PermissionListener, LifecycleObserver {
+) : PermissionListener, LifecycleObserver {
     private var permissionManager = PermissionProvider.getPermissionManager()
     private var gpsProvider: GpsProvider
-    private var prefs: PreferenceManager?=null
+    private var prefs: PreferenceManager? = null
+
     init {
         this.permissionManager.setListener(this)
         this.permissionManager.setContextProcessor(contextProcessor)
@@ -36,7 +37,7 @@ class LocationManager private constructor(
         this.gpsProvider.setPrefs(this.prefs)
     }
 
-     class Builder constructor(context: Context) {
+    class Builder constructor(context: Context) {
 
         private lateinit var locationListener: LocationListener
         private var timeOut: Long = LocationConstants.TIME_OUT_NONE
@@ -47,24 +48,25 @@ class LocationManager private constructor(
             return this
         }
 
-         fun setActivity(activity: Activity) : Builder{
-             this.contextProcessor.activity = activity
-             return this
-         }
+        fun setActivity(activity: Activity): Builder {
+            this.contextProcessor.activity = activity
+            return this
+        }
 
-         fun setFragment(fragment: Fragment) : Builder {
-             this.contextProcessor.fragment = fragment
-             return this
-         }
+        fun setFragment(fragment: Fragment): Builder {
+            this.contextProcessor.fragment = fragment
+            return this
+        }
 
-         fun setRequestTimeOut(timeOut: Long):Builder {
+        fun setRequestTimeOut(timeOut: Long): Builder {
             this.timeOut = timeOut
             return this
         }
-         fun showLoading(show: Boolean):Builder{
-             this.showLoading = show
-             return this
-         }
+
+        fun showLoading(show: Boolean): Builder {
+            this.showLoading = show
+            return this
+        }
 
         fun build(): LocationManager {
             return LocationManager(locationListener, contextProcessor, timeOut, showLoading)
@@ -76,49 +78,58 @@ class LocationManager private constructor(
     }
 
     private fun askForPermission() {
-        if(permissionManager.hasPermission()){
+        if (permissionManager.hasPermission()) {
             permissionGranted(true)
-        }else{
+        } else {
             permissionManager.requestPermissions()
         }
     }
 
-    private fun permissionGranted(alreadyHadPermission:Boolean){
+    private fun permissionGranted(alreadyHadPermission: Boolean) {
         locationListener?.onPermissionGranted(alreadyHadPermission)
         gpsProvider.get()
     }
 
-    private fun onPermissionGrantedFailed(){
+    private fun onPermissionGrantedFailed() {
         locationListener?.let {
             locationListener.onPermissionDenied()
         }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-     fun onResume(){
+    fun onResume() {
         locationListener?.let {
-            if(permissionManager.hasPermission()) {
+            if (permissionManager.hasPermission()) {
                 gpsProvider.onResume()
             }
         }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    internal fun onPause(){
+    internal fun onPause() {
         locationListener?.let {
             gpsProvider.onPause()
         }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    internal fun onDestroy(){
+    internal fun onDestroy() {
         locationListener?.let {
             gpsProvider.onDestroy()
         }
     }
 
+    fun setShowLoading(showLoading: Boolean) {
+        this.gpsProvider.setShowLoading(showLoading)
+    }
+
+    fun isLoadingSet(): Boolean {
+        return this.gpsProvider.isLoadingSet()
+    }
+
+    @ExperimentalSharedPrefs
     fun getLastUpdatedLocation(): LocationModel? {
-        return  prefs?.getLocationModel()
+        return prefs?.getLocationModel()
     }
 
     override fun onPermissionGranted() {
@@ -134,6 +145,6 @@ class LocationManager private constructor(
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        permissionManager.onPermissionResult(requestCode, permissions,grantResults)
+        permissionManager.onPermissionResult(requestCode, permissions, grantResults)
     }
 }

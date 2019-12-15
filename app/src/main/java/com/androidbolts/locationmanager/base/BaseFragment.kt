@@ -13,7 +13,7 @@ abstract class BaseFragment : Fragment(), LocationListener {
 
     fun initLocationManager(): LocationManager? {
         locationManager = LocationManager.Builder(requireActivity().applicationContext)
-            .showLoading(true)
+            .showLoading(false)
             .setListener(this)
             .setFragment(this)
             .setRequestTimeOut(LocationConstants.TIME_OUT_LONG)

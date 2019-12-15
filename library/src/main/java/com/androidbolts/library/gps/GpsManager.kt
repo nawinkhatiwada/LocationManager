@@ -28,16 +28,18 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
+import java.lang.ref.WeakReference
 
 internal class GpsManager private constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private var mSettingsClient: SettingsClient? = null
-    private var mLocationRequest: LocationRequest? = null
+    private var mLocationRequest: LocationRequest = LocationRequest()
     private var mLocationCallback: LocationCallback? = null
     private var mCurrentLocation: Location? = null
     private var mLocationSettingsRequest: LocationSettingsRequest? = null
     private var dialog: AlertDialog? = null
     private var mRequestingLocationUpdates: Boolean = false
+
 
     companion object {
         private var gpsManager: GpsManager? = null
@@ -72,7 +74,13 @@ internal class GpsManager private constructor() : GpsProvider() {
     }
 
     private fun getLocation() {
+        if (mSettingsClient == null && mFusedLocationClient == null) {
+            initFusedAndSettingClient()
+        }
+        setupLocationBasic()
+    }
 
+    private fun initFusedAndSettingClient() {
         when {
             getFragment() != null -> {
                 mFusedLocationClient =
@@ -87,7 +95,6 @@ internal class GpsManager private constructor() : GpsProvider() {
             }
             else -> Log.d("LocationManager", "Host is invalid.")
         }
-        setupLocationBasic()
     }
 
     private fun setupLocationBasic() {
@@ -100,11 +107,10 @@ internal class GpsManager private constructor() : GpsProvider() {
         if (mCurrentLocation == null || getFragment() != null || getActivity() != null) {
             showDialog()
         }
-        mLocationRequest = LocationRequest()
-        mLocationRequest?.interval = LocationConstants.UPDATE_INTERVAL_IN_MILLISECONDS
-        mLocationRequest?.fastestInterval =
+        mLocationRequest.interval = LocationConstants.UPDATE_INTERVAL_IN_MILLISECONDS
+        mLocationRequest.fastestInterval =
             LocationConstants.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
-        mLocationRequest?.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
     private fun createLocationCallback() {
@@ -135,7 +141,7 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     private fun buildLocationSettingsRequest() {
         val builder = LocationSettingsRequest.Builder()
-        mLocationRequest?.let { locReq ->
+        mLocationRequest.let { locReq ->
             builder.addLocationRequest(locReq)
         }
         mLocationSettingsRequest = builder.build()
@@ -143,9 +149,14 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
+        if (mLocationSettingsRequest == null) {
+            buildLocationSettingsRequest()
+        }
+
+        if (mSettingsClient == null || mFusedLocationClient == null) {
+            initFusedAndSettingClient()
+        }
         mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener {
-            //remove if the task is already running
-//            stopLocationUpdates()
             mFusedLocationClient?.requestLocationUpdates(
                 mLocationRequest,
                 mLocationCallback, Looper.myLooper()

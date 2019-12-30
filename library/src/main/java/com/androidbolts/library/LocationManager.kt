@@ -2,6 +2,7 @@ package com.androidbolts.library
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -96,17 +97,32 @@ class LocationManager private constructor(
         }
     }
 
+    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    fun onCreate() {
+        locationListener?.let {
+            gpsProvider.onCreate()
+        }
+    }
+
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     fun onResume() {
         locationListener?.let {
-            if (permissionManager.hasPermission()) {
-                gpsProvider.onResume()
+            val hasPermission = permissionManager.hasPermission()
+            Log.i("Has Permission", hasPermission.toString())
+            val isProviderEnabled = permissionManager.isProviderEnabled()
+            Log.i("isProviderEnabled", isProviderEnabled.toString())
+            if (hasPermission) {
+                if (isProviderEnabled) {
+                    gpsProvider.onResume()
+                }else {
+                    gpsProvider.enableGps()
+                }
             }
         }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    internal fun onPause() {
+    fun onPause() {
         locationListener?.let {
             gpsProvider.onPause()
         }

@@ -28,7 +28,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
-import java.lang.ref.WeakReference
 
 internal class GpsManager private constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
@@ -40,7 +39,6 @@ internal class GpsManager private constructor() : GpsProvider() {
     private var dialog: AlertDialog? = null
     private var mRequestingLocationUpdates: Boolean = false
 
-
     companion object {
         private var gpsManager: GpsManager? = null
         fun getGpsManager(): GpsManager {
@@ -51,12 +49,23 @@ internal class GpsManager private constructor() : GpsProvider() {
         }
     }
 
-    override fun onResume() {
+    override fun onCreate() {
+        initFusedAndSettingClient()
+        createLocationCallback()
+        createLocationRequest()
+        buildLocationSettingsRequest()
+    }
+
+    override fun get() {
         if (!mRequestingLocationUpdates) {
             startLocationUpdates()
             mRequestingLocationUpdates = true
-            Log.d("Tag", "onResume called")
         }
+    }
+
+    override fun onResume() {
+        get()
+        Log.d("Tag", "onResume called")
     }
 
     override fun onPause() {
@@ -66,18 +75,8 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     override fun onDestroy() {
         stopLocationUpdates()
+        mCurrentLocation = null
         Log.d("Tag", "onDestroy called")
-    }
-
-    override fun get() {
-        getLocation()
-    }
-
-    private fun getLocation() {
-        if (mSettingsClient == null && mFusedLocationClient == null) {
-            initFusedAndSettingClient()
-        }
-        setupLocationBasic()
     }
 
     private fun initFusedAndSettingClient() {
@@ -97,16 +96,7 @@ internal class GpsManager private constructor() : GpsProvider() {
         }
     }
 
-    private fun setupLocationBasic() {
-        createLocationRequest()
-        createLocationCallback()
-        buildLocationSettingsRequest()
-    }
-
     private fun createLocationRequest() {
-        if (mCurrentLocation == null || getFragment() != null || getActivity() != null) {
-            showDialog()
-        }
         mLocationRequest.interval = LocationConstants.UPDATE_INTERVAL_IN_MILLISECONDS
         mLocationRequest.fastestInterval =
             LocationConstants.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
@@ -149,20 +139,21 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
-        if (mLocationSettingsRequest == null) {
-            buildLocationSettingsRequest()
+        mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnCompleteListener {
+            if (it.isSuccessful) {
+                if (mCurrentLocation == null && (getFragment() != null || getActivity() != null)) {
+                    showDialog()
+                }
+                mFusedLocationClient?.requestLocationUpdates(
+                    mLocationRequest,
+                    mLocationCallback, Looper.myLooper()
+                )
+            }
         }
+    }
 
-        if (mSettingsClient == null || mFusedLocationClient == null) {
-            initFusedAndSettingClient()
-        }
-        mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener {
-            mFusedLocationClient?.requestLocationUpdates(
-                mLocationRequest,
-                mLocationCallback, Looper.myLooper()
-            )
-
-        }?.addOnFailureListener {
+    override fun enableGps() {
+        mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnFailureListener {
             when ((it as ApiException).statusCode) {
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                     Log.i(
@@ -191,7 +182,6 @@ internal class GpsManager private constructor() : GpsProvider() {
                         "Location settings are inadequate, and cannot be " + "fixed here. Fix in Settings."
                     Log.e("LocationManager", errorMessage)
                     Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show()
-                    mRequestingLocationUpdates = false
                 }
             }
         }
@@ -207,7 +197,7 @@ internal class GpsManager private constructor() : GpsProvider() {
             getActivity()?.let { context ->
                 dialog = showLoadingDialog(context, "Fetching Location", "Please wait...",
                     false, onPositiveButtonClicked = {
-                        setupLocationBasic()
+                        startLocationUpdates()
                     }, onNegativeButtonClicked = {
                         stopLocationUpdates()
                         dismissDialog()
@@ -226,7 +216,13 @@ internal class GpsManager private constructor() : GpsProvider() {
                         }, getTimeOut())
                     }
                 }
-                dialog?.show()
+                dialog?.let { loadingDialog ->
+                    if (!loadingDialog.isShowing) {
+                        dialog?.show()
+                    }else {
+                        dialog?.dismiss()
+                    }
+                }
             }
         }
     }
@@ -239,7 +235,11 @@ internal class GpsManager private constructor() : GpsProvider() {
     }
 
     private fun dismissDialog() {
-        dialog?.dismiss()
+        dialog?.let {
+            if (it.isShowing) {
+                dialog?.dismiss()
+            }
+        }
     }
 
     private fun isLocationAvailable(): Boolean {

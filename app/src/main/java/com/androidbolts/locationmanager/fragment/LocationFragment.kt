@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import com.androidbolts.library.LocationManager
-import com.androidbolts.library.gps.GpsProvider
 import com.androidbolts.locationmanager.R
 import com.androidbolts.locationmanager.base.BaseFragment
 
@@ -18,6 +17,7 @@ class LocationFragment private constructor() : BaseFragment() {
     private var location: Location? = null
     private var locationManager: LocationManager? = null
     private val tvLocation by lazy { activity?.findViewById<TextView>(R.id.tv_current_location) }
+    private var isObserverAdded = false
 
     companion object {
         fun getInstance() = LocationFragment()
@@ -31,7 +31,6 @@ class LocationFragment private constructor() : BaseFragment() {
         val view = inflater.inflate(R.layout.fragment_location, container, false)
         val btnGetLocation = view.findViewById<Button>(R.id.btn_get_loc)
         locationManager = initLocationManager()
-        lifecycle.addObserver(locationManager!!)
 
         btnGetLocation.setOnClickListener {
             getLocation()
@@ -39,11 +38,14 @@ class LocationFragment private constructor() : BaseFragment() {
         return view
     }
 
-
     private fun getLocation() {
         locationManager?.let {
             if (!it.isLoadingSet()) {
                 locationManager?.setShowLoading(true)
+            }
+            if (!isObserverAdded) {
+                lifecycle.addObserver(it)
+                isObserverAdded = true
             }
             locationManager?.getLocation()
         }

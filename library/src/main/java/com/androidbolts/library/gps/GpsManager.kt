@@ -141,9 +141,13 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
+        stopLocationUpdates()
+        mCurrentLocation = null
         mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnCompleteListener {
             if (it.isSuccessful) {
-                if (mCurrentLocation == null && (getFragment() != null || getActivity() != null)) {
+                val frag = getFragment()
+                val act = getActivity()
+                if (mCurrentLocation == null && (act != null ||frag != null)) {
                     showDialog()
                 }
                 mFusedLocationClient?.requestLocationUpdates(

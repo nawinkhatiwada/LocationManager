@@ -38,15 +38,11 @@ internal class GpsManager private constructor() : GpsProvider() {
     private var mLocationSettingsRequest: LocationSettingsRequest? = null
     private var dialog: AlertDialog? = null
     private var mRequestingLocationUpdates: Boolean = false
-    private var timer: CountDownTimer ?= null
+    private var timer: CountDownTimer? = null
 
     companion object {
-        private var gpsManager: GpsManager? = null
         fun getGpsManager(): GpsManager {
-            if (gpsManager == null) {
-                gpsManager = GpsManager()
-            }
-            return gpsManager!!
+            return GpsManager()
         }
     }
 
@@ -141,13 +137,11 @@ internal class GpsManager private constructor() : GpsProvider() {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
-        stopLocationUpdates()
-        mCurrentLocation = null
         mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnCompleteListener {
             if (it.isSuccessful) {
                 val frag = getFragment()
                 val act = getActivity()
-                if (mCurrentLocation == null && (act != null ||frag != null)) {
+                if (mCurrentLocation == null && (act != null || frag != null)) {
                     showDialog()
                 }
                 mFusedLocationClient?.requestLocationUpdates(
@@ -215,27 +209,27 @@ internal class GpsManager private constructor() : GpsProvider() {
                     posButton?.visibility = View.GONE
                     negButton?.visibility = View.GONE
                     if (getTimeOut() != TIME_OUT_NONE && mCurrentLocation == null) {
-                       timer = object :CountDownTimer(getTimeOut(), 1000){
-                           override fun onFinish() {
-                               if(mCurrentLocation == null) {
-                                   posButton?.visibility = View.VISIBLE
-                                   negButton?.visibility = View.VISIBLE
-                                   updateDialog()
-                               }else {
-                                   dismissDialog()
-                               }
-                           }
+                        timer = object : CountDownTimer(getTimeOut(), 1000) {
+                            override fun onFinish() {
+                                if (mCurrentLocation == null) {
+                                    posButton?.visibility = View.VISIBLE
+                                    negButton?.visibility = View.VISIBLE
+                                    updateDialog()
+                                } else {
+                                    dismissDialog()
+                                }
+                            }
 
-                           override fun onTick(running: Long) {
-                           }
-                       }
+                            override fun onTick(running: Long) {
+                            }
+                        }
                         timer?.start()
                     }
                 }
                 dialog?.let { loadingDialog ->
                     if (!loadingDialog.isShowing) {
                         dialog?.show()
-                    }else {
+                    } else {
                         dialog?.dismiss()
                     }
                 }
@@ -244,8 +238,10 @@ internal class GpsManager private constructor() : GpsProvider() {
     }
 
     private fun updateDialog() {
-        dialog?.findViewById<TextView>(R.id.title)?.text = getContext()?.getString(R.string.gps_problem)
-        dialog?.findViewById<TextView>(R.id.message)?.text =getContext()?.getString(R.string.gps_problem_desc)
+        dialog?.findViewById<TextView>(R.id.title)?.text =
+            getContext()?.getString(R.string.gps_problem)
+        dialog?.findViewById<TextView>(R.id.message)?.text =
+            getContext()?.getString(R.string.gps_problem_desc)
         dialog?.findViewById<ProgressBar>(R.id.progress_circular)?.visibility = View.GONE
     }
 

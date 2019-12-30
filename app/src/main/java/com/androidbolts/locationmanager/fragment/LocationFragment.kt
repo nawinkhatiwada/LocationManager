@@ -48,7 +48,7 @@ class LocationFragment private constructor() : BaseFragment() {
                 isObserverAdded = true
             }
             locationManager?.getLocation()
-        }
+       }
     }
 
     override fun onLocationChanged(location: Location?) {

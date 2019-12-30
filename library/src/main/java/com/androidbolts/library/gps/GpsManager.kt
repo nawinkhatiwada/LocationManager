@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.IntentSender
 import android.location.Location
-import android.os.Handler
+import android.os.CountDownTimer
 import android.os.Looper
 import android.util.Log
 import android.view.View
@@ -38,6 +38,7 @@ internal class GpsManager private constructor() : GpsProvider() {
     private var mLocationSettingsRequest: LocationSettingsRequest? = null
     private var dialog: AlertDialog? = null
     private var mRequestingLocationUpdates: Boolean = false
+    private var timer: CountDownTimer ?= null
 
     companion object {
         private var gpsManager: GpsManager? = null
@@ -117,6 +118,7 @@ internal class GpsManager private constructor() : GpsProvider() {
                     getPrefs()?.setLocationModel(locationModel)
                 }
                 if (isLocationAvailable()) {
+                    timer?.cancel()
                     dismissDialog()
                 }
 
@@ -208,12 +210,22 @@ internal class GpsManager private constructor() : GpsProvider() {
                     val negButton = dialog?.getButton(Dialog.BUTTON_NEGATIVE)
                     posButton?.visibility = View.GONE
                     negButton?.visibility = View.GONE
-                    if (getTimeOut() != TIME_OUT_NONE) {
-                        Handler().postDelayed({
-                            posButton?.visibility = View.VISIBLE
-                            negButton?.visibility = View.VISIBLE
-                            updateDialog()
-                        }, getTimeOut())
+                    if (getTimeOut() != TIME_OUT_NONE && mCurrentLocation == null) {
+                       timer = object :CountDownTimer(getTimeOut(), 1000){
+                           override fun onFinish() {
+                               if(mCurrentLocation == null) {
+                                   posButton?.visibility = View.VISIBLE
+                                   negButton?.visibility = View.VISIBLE
+                                   updateDialog()
+                               }else {
+                                   dismissDialog()
+                               }
+                           }
+
+                           override fun onTick(running: Long) {
+                           }
+                       }
+                        timer?.start()
                     }
                 }
                 dialog?.let { loadingDialog ->
@@ -228,9 +240,8 @@ internal class GpsManager private constructor() : GpsProvider() {
     }
 
     private fun updateDialog() {
-        dialog?.findViewById<TextView>(R.id.title)?.text = "Gps problem"
-        dialog?.findViewById<TextView>(R.id.message)?.text =
-            "We couldn't fetch your current location."
+        dialog?.findViewById<TextView>(R.id.title)?.text = getContext()?.getString(R.string.gps_problem)
+        dialog?.findViewById<TextView>(R.id.message)?.text =getContext()?.getString(R.string.gps_problem_desc)
         dialog?.findViewById<ProgressBar>(R.id.progress_circular)?.visibility = View.GONE
     }
 

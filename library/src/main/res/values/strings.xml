@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">library</string>
+    <string name="gps_problem" >Gps problem</string>
+    <string name="gps_problem_desc" >We couldn\'t fetch your current location.</string>
 </resources>

@@ -88,7 +88,7 @@ class LocationManager private constructor(
 
     private fun permissionGranted(alreadyHadPermission: Boolean) {
         locationListener?.onPermissionGranted(alreadyHadPermission)
-        gpsProvider.get()
+//        gpsProvider.get()
     }
 
     private fun onPermissionGrantedFailed() {

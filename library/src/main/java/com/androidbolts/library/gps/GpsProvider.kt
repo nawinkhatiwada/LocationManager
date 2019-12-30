@@ -16,10 +16,12 @@ abstract class GpsProvider {
     private var showDialog: Boolean = false
     private var timeOut: Long = TIME_OUT_NONE
     private var prefs: PreferenceManager? = null
+    abstract fun onCreate()
     abstract fun onResume()
     abstract fun onPause()
     abstract fun onDestroy()
     abstract fun get()
+    abstract fun enableGps()
 
     fun setContextProcessor(contextProcessor: ContextProcessor) {
         this.weakContextProcessor = WeakReference(contextProcessor)

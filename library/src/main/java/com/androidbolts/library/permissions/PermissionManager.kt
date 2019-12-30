@@ -3,8 +3,11 @@ package com.androidbolts.library.permissions
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.location.LocationManager.GPS_PROVIDER
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
@@ -113,5 +116,15 @@ abstract class PermissionManager {
                 }
             }
         }
+    }
+
+    fun isProviderEnabled(): Boolean {
+        val ctx = if (getFragment() != null)
+            getFragment()?.requireActivity()
+        else
+            getActivity()
+        val service = ctx?.getSystemService(LOCATION_SERVICE) as LocationManager?
+        val isEnabled = service?.isProviderEnabled(GPS_PROVIDER)
+        return isEnabled ?: false
     }
 }

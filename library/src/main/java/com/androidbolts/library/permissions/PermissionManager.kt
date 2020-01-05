@@ -120,7 +120,7 @@ abstract class PermissionManager {
 
     fun isProviderEnabled(): Boolean {
         val ctx = if (getFragment() != null)
-            getFragment()?.requireActivity()
+            getFragment()?.activity
         else
             getActivity()
         val service = ctx?.getSystemService(LOCATION_SERVICE) as LocationManager?

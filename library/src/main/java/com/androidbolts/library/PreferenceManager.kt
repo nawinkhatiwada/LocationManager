@@ -7,7 +7,7 @@ import com.androidbolts.library.utils.LocationConstants.KEY_LOCATION_MODEL
 import com.androidbolts.library.utils.LocationConstants.PREF_FILE
 import com.google.gson.Gson
 
-internal class PreferenceManager private constructor(){
+internal class PreferenceManager internal constructor(){
     private lateinit var contextProcessor: ContextProcessor
     private var gson: Gson?=null
 

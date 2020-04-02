@@ -15,7 +15,7 @@ import com.androidbolts.library.utils.ContextProcessor
 import com.androidbolts.library.utils.ExperimentalSharedPrefs
 import com.androidbolts.library.utils.LocationConstants
 
-class LocationManager private constructor(
+class LocationManager internal constructor(
     private val locationListener: LocationListener?,
     contextProcessor: ContextProcessor,
     timeOut: Long = LocationConstants.TIME_OUT_NONE,
@@ -38,7 +38,7 @@ class LocationManager private constructor(
         this.gpsProvider.setPrefs(this.prefs)
     }
 
-    class Builder constructor(context: Context) {
+    class Builder (context: Context) {
 
         private lateinit var locationListener: LocationListener
         private var timeOut: Long = LocationConstants.TIME_OUT_NONE

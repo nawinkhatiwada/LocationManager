@@ -29,7 +29,7 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
 
-internal class GpsManager private constructor() : GpsProvider() {
+internal class GpsManager internal constructor() : GpsProvider() {
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private var mSettingsClient: SettingsClient? = null
     private var mLocationRequest: LocationRequest = LocationRequest()

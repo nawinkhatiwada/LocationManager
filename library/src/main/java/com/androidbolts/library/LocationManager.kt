@@ -144,6 +144,7 @@ class LocationManager internal constructor(
     }
 
     @ExperimentalSharedPrefs
+    /** This is currently is experimental state so it may not work. */
     fun getLastUpdatedLocation(): LocationModel? {
         return prefs?.getLocationModel()
     }

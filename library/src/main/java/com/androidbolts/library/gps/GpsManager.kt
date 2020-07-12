@@ -17,6 +17,7 @@ import com.androidbolts.library.R
 import com.androidbolts.library.utils.LocationConstants
 import com.androidbolts.library.utils.LocationConstants.REQUEST_CHECK_SETTINGS
 import com.androidbolts.library.utils.LocationConstants.TIME_OUT_NONE
+import com.androidbolts.library.utils.orElse
 import com.androidbolts.library.utils.showLoadingDialog
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
@@ -79,17 +80,22 @@ internal class GpsManager internal constructor() : GpsProvider() {
     private fun initFusedAndSettingClient() {
         when {
             getFragment() != null -> {
-                mFusedLocationClient =
-                    LocationServices.getFusedLocationProviderClient(getFragment()?.activity!!)
-                mSettingsClient =
-                    LocationServices.getSettingsClient(getFragment()!!.requireActivity())
+                val activity = getFragment()?.activity
+                activity?.let {
+                    mFusedLocationClient =
+                        LocationServices.getFusedLocationProviderClient(activity)
+                    mSettingsClient =
+                        LocationServices.getSettingsClient(activity)
+                }.orElse {
+                    Log.i("Activity:", activity.toString())
+                }
             }
             getActivity() != null -> {
                 mFusedLocationClient =
                     LocationServices.getFusedLocationProviderClient(getActivity()!!)
                 mSettingsClient = LocationServices.getSettingsClient(getActivity()!!)
             }
-            else -> Log.d("LocationManager", "Host is invalid.")
+            else -> Log.i("LocationManager", "Host is invalid.")
         }
     }
 
@@ -163,15 +169,24 @@ internal class GpsManager internal constructor() : GpsProvider() {
                     try {
                         val rae = it as ResolvableApiException
                         when {
-                            getFragment() != null -> rae.startResolutionForResult(
-                                getFragment()?.requireActivity(),
-                                REQUEST_CHECK_SETTINGS
-                            )
-                            getActivity() != null -> rae.startResolutionForResult(
-                                getActivity(),
-                                REQUEST_CHECK_SETTINGS
-                            )
-                            else -> Log.d("Invalid host", "Host is invalid.")
+                            getFragment() != null -> {
+                                val activity = getFragment()?.activity
+                                activity?.let { fragmentActivity ->
+                                    rae.startResolutionForResult(
+                                        fragmentActivity,
+                                        REQUEST_CHECK_SETTINGS
+                                    )
+                                }
+                            }
+                            getActivity() != null -> {
+                                rae.startResolutionForResult(
+                                    getActivity(),
+                                    REQUEST_CHECK_SETTINGS
+                                )
+                            }
+                            else -> {
+                                Log.d("Invalid host", "Host is invalid.")
+                            }
                         }
                     } catch (sie: IntentSender.SendIntentException) {
                         Log.i("LocationManager", "PendingIntent unable to execute request.")

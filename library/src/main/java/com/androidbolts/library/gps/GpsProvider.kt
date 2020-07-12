@@ -42,12 +42,12 @@ abstract class GpsProvider {
 
     @Nullable
     protected fun getActivity(): Activity? {
-        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()!!.activity
+        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()?.activity
     }
 
     @Nullable
     protected fun getFragment(): Fragment? {
-        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()!!.fragment
+        return if (weakContextProcessor.get() == null) null else weakContextProcessor.get()?.fragment
     }
 
     fun getLocationListener(): LocationListener? {

@@ -38,7 +38,8 @@ class LocationActivity : BaseActivity() {
     override fun onLocationChanged(location: Location?) {
         this.location = location
         Log.d("Location fetched:", "${this.location?.latitude}, ${this.location?.longitude}")
-        binding.tvCurrentLocation?.text =
-            "Latitude: ${this.location?.latitude}\nLongitude: ${this.location?.longitude}"
+        binding.tvCurrentLocation?.text = """Latitude: ${this.location?.latitude}\n
+                                             Longitude: ${this.location?.longitude}\n
+                                             Accuracy: ${this.location?.accuracy}"""
     }
 }

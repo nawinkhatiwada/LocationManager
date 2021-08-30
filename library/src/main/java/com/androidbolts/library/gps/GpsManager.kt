@@ -110,12 +110,17 @@ internal class GpsManager internal constructor() : GpsProvider() {
         mLocationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 super.onLocationResult(locationResult)
-                mCurrentLocation = locationResult?.lastLocation
+                mCurrentLocation = if (locationResult?.locations.isNullOrEmpty()) {
+                    locationResult?.lastLocation
+                } else {
+                    locationResult?.locations?.first()
+                }
                 mCurrentLocation?.let { currentLocation ->
                     val locationModel = LocationModel(
                         System.currentTimeMillis(),
                         currentLocation.latitude,
-                        currentLocation.longitude
+                        currentLocation.longitude,
+                        currentLocation.accuracy
                     )
                     getPrefs()?.setLocationModel(locationModel)
                 }
